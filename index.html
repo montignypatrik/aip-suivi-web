@@ -4,123 +4,194 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Suivi AIP</title>
+  <title>Suivi AIP | FAC.NET</title>
   <script src="config.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
+    /* Look & feel aligned with tasktrack (FAC.NET product UI). */
     * { box-sizing: border-box; }
+    :root { --brand: #2456dc; --ink: #252b40; --line: #dde0e9; --muted: #687185; }
     body {
-      margin: 0; padding: 16px; background: #ffffff; color: #1f2933; font-size: 16px; line-height: 1.45;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0; background: #f0f1f6; color: var(--ink); font-size: 14px; line-height: 1.5;
+      font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased;
     }
-    .enveloppe { max-width: 900px; margin: 0 auto; }
-    h1 { margin: 0 0 4px; font-size: 1.5rem; }
-    .sous-titre { margin: 0 0 16px; color: #52606d; font-size: 0.9rem; }
-    .barre { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+    button, input, select, textarea { font: inherit; }
+    button:not(:disabled) { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+    h1 { margin: 0; color: var(--ink); letter-spacing: -.025em; line-height: 1.3; }
+    .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+    .shell-width { width: min(1280px, calc(100% - 64px)); margin-inline: auto; }
+
+    /* header */
+    .app-header { background: #282e45; color: #fff; }
+    .app-header :focus-visible { outline-color: #c0ceff; }
+    .brand-row { height: 70px; display: flex; align-items: center; gap: 25px; }
+    .brand-link { display: inline-flex; color: #fff; }
+    .brand-caption { padding-left: 25px; border-left: 1px solid #51566a; color: #c8ccda; font-size: 12px; }
+    .session { margin-left: auto; display: flex; align-items: center; gap: 14px; color: #d5d8e3; font-size: 12px; }
+    .btn-ghost-dark {
+      padding: 6px 12px; color: #d3d6e1; background: transparent; border: 1px solid #51566a; border-radius: 4px;
+      font-size: 12px; font-weight: 600; transition: color .15s, border-color .15s, background .15s;
+    }
+    .btn-ghost-dark:hover { color: #fff; border-color: #a5b9ff; background: #353d58; }
+    .breadcrumb { display: flex; align-items: center; gap: 9px; padding-block: 22px 16px; color: #747b8c; font-size: 11px; }
+    .breadcrumb b { color: #444c60; font-weight: 400; }
+    .page-content { flex: 1; padding-bottom: 48px; min-width: 0; }
+    .page-heading { margin-bottom: 25px; }
+    .page-heading h1 { font-size: 27px; font-weight: 650; }
+    .page-heading p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+    .app-footer {
+      margin-top: auto; border-top: 1px solid var(--line); padding-block: 20px 25px; display: flex; align-items: center;
+      justify-content: space-between; color: #737b8d; font-size: 11px;
+    }
+    .app-footer svg { width: 74px; height: 13px; opacity: .75; color: var(--ink); }
+
+    /* login */
+    .connexion {
+      width: min(420px, calc(100% - 32px)); margin: 12vh auto 0; padding: 34px 30px 26px; text-align: center;
+      background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 2px 8px #252b4008;
+    }
+    .connexion h1 { font-size: 24px; font-weight: 650; }
+    .connexion .sous-titre { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+    .connexion #bouton-google { display: flex; justify-content: center; min-height: 44px; margin: 24px 0 8px; }
+    .erreur-connexion { min-height: 1.4em; margin: 0; color: #9f1239; font-size: 13px; }
+
+    /* filter card */
+    .filter-bar {
+      display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; margin-bottom: 22px; padding: 20px;
+      background: #fff; border: 1px solid var(--line); border-radius: 6px;
+    }
+    .filter-bar > .champ { flex: 1 1 260px; min-width: 0; }
+    .filter-bar > .champ.chips-champ { flex: 999 1 420px; }
+    .filter-label { display: block; margin-bottom: 7px; color: #485166; font-size: 11px; font-weight: 650; }
     #recherche {
-      flex: 1 1 240px; min-width: 0; padding: 8px 10px; font: inherit; color: inherit;
-      border: 1px solid #cbd2d9; border-radius: 6px;
+      width: 100%; min-height: 40px; padding: 8px 14px; color: #0f172a; background: #fff;
+      border: 1px solid #e2e8f0; border-radius: 6px; outline: none;
     }
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip {
-      font: inherit; font-size: 0.85rem; padding: 4px 10px; color: #334e68; background: #f5f7fa;
-      border: 1px solid #cbd2d9; border-radius: 999px; cursor: pointer;
+    #recherche::placeholder { color: #737b8d; }
+    #recherche:focus, .note-editeur textarea:focus, .medecin-editeur input:focus, .medecins-groupe-editeur input:focus, select:focus {
+      border-color: #2456dc99; box-shadow: 0 0 0 3px #2456dc1a;
     }
-    .chip.actif { color: #ffffff; background: #1f6feb; border-color: #1f6feb; }
-    .compteur { margin-left: 4px; opacity: 0.75; }
+    .chips { display: inline-flex; flex-wrap: wrap; gap: 3px; padding: 3px; background: #f6f7fa; border: 1px solid #e0e3ec; border-radius: 5px; }
+    .chip { padding: 6px 13px; color: #596176; background: transparent; border: 0; border-radius: 3px; font-size: 12px; white-space: nowrap; }
+    .chip:hover { color: var(--ink); }
+    .chip.actif { color: var(--brand); background: #fff; box-shadow: 0 1px 4px #252b401c; font-weight: 600; }
+    .compteur { margin-left: 5px; color: #8b93a5; font-size: 11px; }
+    .chip.actif .compteur { color: #6f8fe6; }
+
+    /* rows */
     .ligne {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 8px;
-      padding: 10px 12px; background: #ffffff; border: 1px solid #e1e6eb; border-radius: 8px;
+      display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 20px; margin-bottom: 9px; padding: 16px 20px;
+      background: #fff; border: 1px solid #dfe2eb; border-left: 4px solid #cbd2df; border-radius: 6px;
+      transition: border-color .15s, background .15s;
     }
-    .ligne.st-0 { background: #f1f3f5; }
-    .ligne.st-1 { background: #fff3e0; }
-    .ligne.st-2 { background: #e0f7fa; }
-    .ligne.st-3 { background: #dcedc8; }
-    .ligne.st-4 { background: #c8e6c9; }
+    .ligne:hover { border-color: #9bb0e5; background: #fcfdff; }
+    .ligne.st-0 { border-left-color: #94a3b8; }
+    .ligne.st-1 { border-left-color: #f59e0b; }
+    .ligne.st-2 { border-left-color: #2456dc; }
+    .ligne.st-3 { border-left-color: #14b8a6; }
+    .ligne.st-4 { border-left-color: #10b981; }
     .principal { flex: 1 1 300px; min-width: 0; }
-    .nom { overflow-wrap: break-word; cursor: pointer; }
-    .nom:hover { color: #1f6feb; }
-    .nom.gmf { font-weight: 700; }
-    .region, .detail { color: #52606d; font-size: 0.8rem; }
-    .membres { margin-top: 6px; }
-    .membre { position: relative; padding-left: 14px; color: #3e4c59; font-size: 0.85rem; }
-    .membre::before { content: "•"; position: absolute; left: 2px; }
-    .actions { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-left: auto; }
+    .nom { overflow-wrap: break-word; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--ink); }
+    .nom:hover { color: var(--brand); }
+    .nom.gmf { font-weight: 650; }
+    .region, .detail { color: #70798b; font-size: 12px; }
+    .membres { margin-top: 8px; }
+    .membre { position: relative; padding-left: 14px; color: #485166; font-size: 12px; }
+    .membre::before { content: "•"; position: absolute; left: 2px; color: #9aa3b5; }
+    .actions { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; margin-left: auto; }
+    .modif { color: #70798b; font-size: 11px; }
     select {
-      font: inherit; font-size: 0.9rem; max-width: 100%; padding: 6px 8px; color: inherit;
-      background: #ffffff; border: 1px solid #cbd2d9; border-radius: 6px;
+      min-height: 36px; max-width: 100%; padding: 6px 30px 6px 12px; color: #334155; background-color: #f1f5f9;
+      border: 1px solid #e2e8f0; border-radius: 4px; font-size: 12px; font-weight: 600; outline: none;
     }
-    .modif { color: #52606d; font-size: 0.75rem; }
-    .notes { margin-top: 8px; }
-    .note-item {
-      position: relative; margin-bottom: 6px; padding: 8px; background: #f8fafc;
-      border: 1px solid #e1e6eb; border-left: 3px solid #9aa5b1; border-radius: 6px; font-size: 0.85rem;
+    .ligne.st-1 select { color: #92400e; background-color: #fffbeb; border-color: #fde68a; }
+    .ligne.st-2 select { color: #1d4ed8; background-color: #eff6ff; border-color: #bfdbfe; }
+    .ligne.st-3 select { color: #115e59; background-color: #f0fdfa; border-color: #99f6e4; }
+    .ligne.st-4 select { color: #065f46; background-color: #ecfdf5; border-color: #a7f3d0; }
+
+    /* details panels */
+    .notes { margin-top: 10px; }
+    .note-item, .medecin, .medecins-groupe {
+      margin-top: 8px; padding: 10px 12px; background: #f8f9fc; border: 1px solid #e5e7ef;
+      border-left: 3px solid #9aa3b5; border-radius: 5px; font-size: 12px;
     }
-    .note-texte { white-space: pre-wrap; overflow-wrap: break-word; }
-    .note-item .modif { margin-top: 2px; }
-    .note-item-actions { margin-top: 6px; }
-    .note-item-actions .note-btn { margin-right: 6px; }
-    .note-supprimer { color: #c0392b; }
-    .note-ajouter { margin-top: 2px; }
+    .note-item { margin-top: 0; margin-bottom: 8px; }
+    .medecin { border-left-color: var(--brand); }
+    .medecins-groupe { border-left-color: #f59e0b; }
+    .note-texte { white-space: pre-wrap; overflow-wrap: break-word; color: #334155; }
+    .medecin-titre, .medecins-groupe-titre { color: #687185; }
+    .medecin-valeur { color: var(--ink); font-weight: 650; }
+    .medecins-groupe .membre { font-weight: 600; color: #334155; }
+    .note-item .modif, .medecin .modif, .medecins-groupe .modif { margin-top: 2px; }
+    .note-item-actions, .note-actions { margin-top: 8px; }
+    .medecin .note-btn, .medecins-groupe .note-btn { margin-top: 8px; }
     .note-btn {
-      font: inherit; font-size: 0.8rem; padding: 2px 8px; color: #334e68; background: #ffffff;
-      border: 1px solid #cbd2d9; border-radius: 999px; cursor: pointer;
+      min-height: 30px; margin-right: 6px; padding: 4px 12px; color: #334155; background: #fff;
+      border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; font-weight: 600; transition: border-color .15s, background .15s;
     }
-    .note-editeur textarea { width: 100%; font: inherit; font-size: 0.85rem; padding: 6px; border: 1px solid #cbd2d9; border-radius: 6px; }
-    .note-actions { margin-top: 6px; }
-    .note-actions .note-btn { margin-right: 6px; }
-    .medecin {
-      margin-top: 8px; padding: 8px; background: #f8fafc; border: 1px solid #e1e6eb;
-      border-left: 3px solid #2bb673; border-radius: 6px; font-size: 0.85rem;
+    .note-btn:hover { border-color: #93b4f5; background: #eff6ff; }
+    .note-actions .note-btn:first-child { color: #fff; background: var(--brand); border-color: var(--brand); }
+    .note-actions .note-btn:first-child:hover { background: #1d4ed8; border-color: #1d4ed8; }
+    .note-supprimer { color: #be123c; }
+    .note-supprimer:hover { border-color: #fda4af; background: #fff1f2; }
+    .note-ajouter { margin-top: 2px; }
+    .note-editeur textarea, .medecin-editeur input, .medecins-groupe-editeur input {
+      display: block; width: 100%; padding: 8px 12px; color: #0f172a; background: #fff;
+      border: 1px solid #e2e8f0; border-radius: 6px; outline: none;
     }
-    .medecin-titre { color: #52606d; }
-    .medecin-valeur { font-weight: 600; }
-    .medecin .modif { margin-top: 2px; }
-    .medecin .note-btn { margin-top: 6px; }
-    .medecin-editeur input {
-      width: 100%; font: inherit; font-size: 0.85rem; padding: 6px; margin-top: 6px;
-      border: 1px solid #cbd2d9; border-radius: 6px;
+    .note-editeur textarea { font-size: 12px; }
+    .medecin-editeur input, .medecins-groupe-editeur input { margin-top: 6px; min-height: 36px; font-size: 13px; }
+    .vide { display: none; margin: 0; padding: 45px 20px; text-align: center; color: #697286; }
+
+    @media (max-width: 900px) { .shell-width { width: calc(100% - 40px); } .brand-row { height: 64px; } }
+    @media (max-width: 600px) {
+      .shell-width { width: calc(100% - 32px); }
+      .brand-row { gap: 17px; }
+      .brand-caption { padding-left: 17px; font-size: 10px; }
+      .brand-link svg { width: 100px; }
+      .page-heading h1 { font-size: 24px; }
+      .breadcrumb { padding-block: 18px 13px; }
+      .filter-bar { gap: 16px; padding: 16px; }
+      .ligne { padding: 14px 16px; }
+      .actions { align-items: flex-start; margin-left: 0; }
+      .session #utilisateur { display: none; }
     }
-    .medecins-groupe {
-      margin-top: 8px; padding: 8px; background: #f8fafc; border: 1px solid #e1e6eb;
-      border-left: 3px solid #e67e22; border-radius: 6px; font-size: 0.85rem;
-    }
-    .medecins-groupe-titre { color: #52606d; }
-    .medecins-groupe .membre { font-weight: 600; color: #3e4c59; }
-    .medecins-groupe .modif { margin-top: 2px; }
-    .medecins-groupe .note-btn { margin-top: 6px; }
-    .medecins-groupe-editeur input {
-      display: block; width: 100%; font: inherit; font-size: 0.85rem; padding: 6px; margin-top: 6px;
-      border: 1px solid #cbd2d9; border-radius: 6px;
-    }
-    .medecins-groupe-editeur .note-actions { margin-top: 6px; }
-    .connexion { max-width: 420px; margin: 15vh auto 0; text-align: center; }
-    .connexion #bouton-google { display: flex; justify-content: center; min-height: 44px; margin: 20px 0 8px; }
-    .erreur-connexion { min-height: 1.4em; color: #c0392b; font-size: 0.9rem; }
-    .session { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin: 0 0 8px; color: #52606d; font-size: 0.8rem; }
-    header { position: relative; }
-    .vide { display: none; margin: 0; padding: 24px 0; text-align: center; color: #52606d; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
   </style>
 </head>
 <body>
-  <div id="connexion" class="connexion" style="display:none">
-    <h1>Suivi AIP</h1>
-    <p class="sous-titre">Connectez-vous avec votre compte @facturation.net</p>
-    <div id="bouton-google"></div>
-    <p id="message-connexion" class="erreur-connexion"></p>
-  </div>
-  <div id="app" class="enveloppe" style="display:none">
-    <div class="session"><span id="utilisateur"></span><button id="deconnexion" type="button" class="note-btn">Se déconnecter</button></div>
-    <header>
-      <h1>Suivi AIP</h1>
-      <p class="sous-titre">Collecte des numéros AIP par GMF et établissement</p>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="brand" viewBox="0 0 103 18"><path d="M41.9365 0C42.7673 0 43.5487 0.0968083 44.2832 0.282227C45.0176 0.471197 45.6948 0.738534 46.3223 1.08789C46.9497 1.43728 47.5133 1.86847 48.0195 2.38184C48.5223 2.8953 48.9579 3.46979 49.3145 4.10449L46.4795 6.35059C46.2692 5.94419 45.9982 5.56978 45.6738 5.22754C45.3458 4.88523 44.9853 4.59272 44.5859 4.34668C44.1832 4.10431 43.759 3.91903 43.3027 3.78711C42.8499 3.65518 42.3752 3.59082 41.8867 3.59082C41.1201 3.59082 40.4208 3.72676 39.7861 4.00488C39.1516 4.28299 38.6093 4.66035 38.1602 5.1416C37.711 5.61932 37.3691 6.1901 37.123 6.84961C36.8771 7.50913 36.7559 8.22246 36.7559 8.98535C36.7559 9.74842 36.8806 10.4624 37.1338 11.1221C37.3869 11.7816 37.74 12.3553 38.1963 12.8438C38.6527 13.3322 39.1873 13.7176 39.8076 13.9922C40.4281 14.2667 41.1059 14.4053 41.8369 14.4053C42.8459 14.4052 43.7407 14.1632 44.5215 13.6748V13.6787C45.3022 13.1903 45.9692 12.4983 46.5254 11.6035L49.3818 13.7998C49.0075 14.4202 48.5577 14.9837 48.0371 15.4971C47.5166 16.0104 46.9393 16.4528 46.3047 16.8271C45.67 17.2015 44.9782 17.4901 44.2295 17.6934C43.4843 17.8966 42.6997 18 41.8867 18C40.5852 18 39.3834 17.7682 38.2852 17.3047C37.187 16.8411 36.2345 16.2032 35.4287 15.3867C34.6229 14.5702 33.9962 13.6139 33.5469 12.5156C33.1012 11.4174 32.876 10.2405 32.876 8.98535C32.876 7.73043 33.1012 6.55413 33.5469 5.45605C33.9962 4.35781 34.6163 3.40547 35.415 2.59961C36.2137 1.79381 37.1691 1.15884 38.2744 0.695312C39.3798 0.231775 40.603 0 41.9365 0ZM10.8682 3.5625H3.76172V7.73828H9.59863V10.9863H3.76172V17.7041H0V0.289062H10.8682V3.5625ZM23.7764 0.289062L30.4082 17.7041H26.5967L25.0811 13.7207H18.7061L17.1943 17.7041H13.3857L16.1455 10.5225H23.8799L21.252 3.5625H18.7666L20.0146 0.289062H23.7764ZM57.8545 17.7041H54.0918V14.4053H57.8545V17.7041ZM65.2783 11.207V0.289062H69.04V17.7041H65.8662L57.8545 6.66406H54.0918V0.289062H57.2695L65.2783 11.207ZM98.71 17.7041H94.9482V10.5723H98.71V17.7041ZM86.4014 3.5625H78.7354V7.29883H85.0361V10.5723H78.7354V14.4053H86.6973V17.6787H74.9736V0.289062H86.4014V3.5625ZM102.693 3.55859H90.9688V0.289062H102.693V3.55859Z" fill="currentColor"/></symbol></svg>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand-row shell-width">
+        <span class="brand-link"><svg width="113" height="20" viewBox="0 0 103 18" role="img" aria-label="FAC.NET"><use href="#brand"/></svg></span>
+        <span class="brand-caption">Suivi AIP</span>
+        <div id="session" class="session" style="display:none"><span id="utilisateur"></span><button id="deconnexion" type="button" class="btn-ghost-dark">Se déconnecter</button></div>
+      </div>
     </header>
-    <div class="barre">
-      <input id="recherche" type="search" placeholder="Rechercher…" autocomplete="off">
-      <div id="chips" class="chips"></div>
+    <div id="connexion" class="connexion" style="display:none">
+      <h1>Suivi AIP</h1>
+      <p class="sous-titre">Connectez-vous avec votre compte @facturation.net</p>
+      <div id="bouton-google"></div>
+      <p id="message-connexion" class="erreur-connexion"></p>
     </div>
-    <div id="liste"></div>
-    <p id="vide" class="vide">Aucun résultat</p>
+    <div id="app" style="display:none">
+      <div class="shell-width breadcrumb"><span>Espace de gestion</span><span>›</span><b>Suivi AIP</b></div>
+      <main class="shell-width page-content">
+        <div class="page-heading">
+          <h1>Suivi AIP</h1>
+          <p>Collecte des numéros AIP par GMF et établissement</p>
+        </div>
+        <div class="filter-bar">
+          <div class="champ"><label class="filter-label" for="recherche">Recherche</label><input id="recherche" type="search" placeholder="Nom, numéro, médecin…" autocomplete="off"></div>
+          <div class="champ chips-champ"><span class="filter-label">Statut</span><div id="chips" class="chips"></div></div>
+        </div>
+        <div id="liste"></div>
+        <p id="vide" class="vide">Aucun résultat</p>
+      </main>
+    </div>
+    <footer class="shell-width app-footer"><svg viewBox="0 0 103 18" role="img" aria-label="FAC.NET"><use href="#brand"/></svg><span>Gestion médicale · FAC.NET</span></footer>
   </div>
   <script>
     var DATA = null;
@@ -182,6 +253,7 @@
 
     function afficherConnexion(message) {
       document.getElementById('app').style.display = 'none';
+      document.getElementById('session').style.display = 'none';
       document.getElementById('connexion').style.display = 'block';
       document.getElementById('message-connexion').textContent = message || '';
       preparerBoutonGoogle();
@@ -226,6 +298,7 @@
         document.getElementById('recherche').value = '';
         document.getElementById('connexion').style.display = 'none';
         document.getElementById('app').style.display = 'block';
+        document.getElementById('session').style.display = 'flex';
         document.getElementById('utilisateur').textContent = nomAffiche(donnees.user);
         document.getElementById('chips').innerHTML = '';
         construireChips();
