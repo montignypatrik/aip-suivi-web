@@ -202,6 +202,7 @@
     var CLE_TOKEN = 'aip-suivi-token';
     var TOKEN = lireToken();
     var GIS_PRET = false;
+    var INVITE_AUTO = true; // ouvre l'invite Google d'elle-même (One Tap), une fois par affichage de la connexion
 
     function lireToken() {
       try { return localStorage.getItem(CLE_TOKEN) || ''; } catch (e) { return ''; }
@@ -264,10 +265,17 @@
       var conteneur = document.getElementById('bouton-google');
       conteneur.innerHTML = '';
       google.accounts.id.renderButton(conteneur, {theme: 'outline', size: 'large', text: 'signin_with', locale: 'fr'});
+      if (INVITE_AUTO) {
+        INVITE_AUTO = false;
+        google.accounts.id.prompt();
+      }
     }
 
     window.onGoogleLibraryLoad = function () {
-      google.accounts.id.initialize({client_id: CONFIG.GOOGLE_CLIENT_ID, callback: surIdentifiant});
+      google.accounts.id.initialize({
+        client_id: CONFIG.GOOGLE_CLIENT_ID, callback: surIdentifiant,
+        auto_select: true, cancel_on_tap_outside: false, use_fedcm_for_prompt: true
+      });
       GIS_PRET = true;
       if (document.getElementById('connexion').style.display !== 'none') { preparerBoutonGoogle(); }
     };
@@ -282,9 +290,11 @@
       });
     }
 
-    function deconnecter(message) {
+    // sansInvite : déconnexion voulue par la personne -> ne pas rouvrir l'invite Google aussitôt.
+    function deconnecter(message, sansInvite) {
       ecrireToken('');
       DATA = null;
+      INVITE_AUTO = !sansInvite;
       if (window.google && google.accounts) { google.accounts.id.disableAutoSelect(); }
       afficherConnexion(message);
     }
@@ -1089,7 +1099,7 @@
       rendre();
     };
 
-    document.getElementById('deconnexion').onclick = function () { deconnecter(''); };
+    document.getElementById('deconnexion').onclick = function () { deconnecter('', true); };
 
     if (TOKEN) { charger(); } else { afficherConnexion(''); }
   </script>
