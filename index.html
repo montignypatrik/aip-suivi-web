@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Suivi AIP</title>
+  <script src="config.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 16px; background: #ffffff; color: #1f2933; font-size: 16px; line-height: 1.45;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .enveloppe { max-width: 900px; margin: 0 auto; }
+    h1 { margin: 0 0 4px; font-size: 1.5rem; }
+    .sous-titre { margin: 0 0 16px; color: #52606d; font-size: 0.9rem; }
+    .barre { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+    #recherche {
+      flex: 1 1 240px; min-width: 0; padding: 8px 10px; font: inherit; color: inherit;
+      border: 1px solid #cbd2d9; border-radius: 6px;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      font: inherit; font-size: 0.85rem; padding: 4px 10px; color: #334e68; background: #f5f7fa;
+      border: 1px solid #cbd2d9; border-radius: 999px; cursor: pointer;
+    }
+    .chip.actif { color: #ffffff; background: #1f6feb; border-color: #1f6feb; }
+    .compteur { margin-left: 4px; opacity: 0.75; }
+    .ligne {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 8px;
+      padding: 10px 12px; background: #ffffff; border: 1px solid #e1e6eb; border-radius: 8px;
+    }
+    .ligne.st-0 { background: #f1f3f5; }
+    .ligne.st-1 { background: #fff3e0; }
+    .ligne.st-2 { background: #e0f7fa; }
+    .ligne.st-3 { background: #dcedc8; }
+    .ligne.st-4 { background: #c8e6c9; }
+    .principal { flex: 1 1 300px; min-width: 0; }
+    .nom { overflow-wrap: break-word; cursor: pointer; }
+    .nom:hover { color: #1f6feb; }
+    .nom.gmf { font-weight: 700; }
+    .region, .detail { color: #52606d; font-size: 0.8rem; }
+    .membres { margin-top: 6px; }
+    .membre { position: relative; padding-left: 14px; color: #3e4c59; font-size: 0.85rem; }
+    .membre::before { content: "•"; position: absolute; left: 2px; }
+    .actions { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-left: auto; }
+    select {
+      font: inherit; font-size: 0.9rem; max-width: 100%; padding: 6px 8px; color: inherit;
+      background: #ffffff; border: 1px solid #cbd2d9; border-radius: 6px;
+    }
+    .modif { color: #52606d; font-size: 0.75rem; }
+    .notes { margin-top: 8px; }
+    .note-item {
+      position: relative; margin-bottom: 6px; padding: 8px; background: #f8fafc;
+      border: 1px solid #e1e6eb; border-left: 3px solid #9aa5b1; border-radius: 6px; font-size: 0.85rem;
+    }
+    .note-texte { white-space: pre-wrap; overflow-wrap: break-word; }
+    .note-item .modif { margin-top: 2px; }
+    .note-item-actions { margin-top: 6px; }
+    .note-item-actions .note-btn { margin-right: 6px; }
+    .note-supprimer { color: #c0392b; }
+    .note-ajouter { margin-top: 2px; }
+    .note-btn {
+      font: inherit; font-size: 0.8rem; padding: 2px 8px; color: #334e68; background: #ffffff;
+      border: 1px solid #cbd2d9; border-radius: 999px; cursor: pointer;
+    }
+    .note-editeur textarea { width: 100%; font: inherit; font-size: 0.85rem; padding: 6px; border: 1px solid #cbd2d9; border-radius: 6px; }
+    .note-actions { margin-top: 6px; }
+    .note-actions .note-btn { margin-right: 6px; }
+    .medecin {
+      margin-top: 8px; padding: 8px; background: #f8fafc; border: 1px solid #e1e6eb;
+      border-left: 3px solid #2bb673; border-radius: 6px; font-size: 0.85rem;
+    }
+    .medecin-titre { color: #52606d; }
+    .medecin-valeur { font-weight: 600; }
+    .medecin .modif { margin-top: 2px; }
+    .medecin .note-btn { margin-top: 6px; }
+    .medecin-editeur input {
+      width: 100%; font: inherit; font-size: 0.85rem; padding: 6px; margin-top: 6px;
+      border: 1px solid #cbd2d9; border-radius: 6px;
+    }
+    .medecins-groupe {
+      margin-top: 8px; padding: 8px; background: #f8fafc; border: 1px solid #e1e6eb;
+      border-left: 3px solid #e67e22; border-radius: 6px; font-size: 0.85rem;
+    }
+    .medecins-groupe-titre { color: #52606d; }
+    .medecins-groupe .membre { font-weight: 600; color: #3e4c59; }
+    .medecins-groupe .modif { margin-top: 2px; }
+    .medecins-groupe .note-btn { margin-top: 6px; }
+    .medecins-groupe-editeur input {
+      display: block; width: 100%; font: inherit; font-size: 0.85rem; padding: 6px; margin-top: 6px;
+      border: 1px solid #cbd2d9; border-radius: 6px;
+    }
+    .medecins-groupe-editeur .note-actions { margin-top: 6px; }
+    .connexion { max-width: 420px; margin: 15vh auto 0; text-align: center; }
+    .connexion #bouton-google { display: flex; justify-content: center; min-height: 44px; margin: 20px 0 8px; }
+    .erreur-connexion { min-height: 1.4em; color: #c0392b; font-size: 0.9rem; }
+    .session { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin: 0 0 8px; color: #52606d; font-size: 0.8rem; }
+    header { position: relative; }
+    .vide { display: none; margin: 0; padding: 24px 0; text-align: center; color: #52606d; }
+  </style>
+</head>
+<body>
+  <div id="connexion" class="connexion" style="display:none">
+    <h1>Suivi AIP</h1>
+    <p class="sous-titre">Connectez-vous avec votre compte @facturation.net</p>
+    <div id="bouton-google"></div>
+    <p id="message-connexion" class="erreur-connexion"></p>
+  </div>
+  <div id="app" class="enveloppe" style="display:none">
+    <div class="session"><span id="utilisateur"></span><button id="deconnexion" type="button" class="note-btn">Se déconnecter</button></div>
+    <header>
+      <h1>Suivi AIP</h1>
+      <p class="sous-titre">Collecte des numéros AIP par GMF et établissement</p>
+    </header>
+    <div class="barre">
+      <input id="recherche" type="search" placeholder="Rechercher…" autocomplete="off">
+      <div id="chips" class="chips"></div>
+    </div>
+    <div id="liste"></div>
+    <p id="vide" class="vide">Aucun résultat</p>
+  </div>
+  <script>
+    var DATA = null;
+    var EXPANSION = new Set();
+    var FILTRE = 'tous';
+    var RECHERCHE = '';
+
+    var CLE_TOKEN = 'aip-suivi-token';
+    var TOKEN = lireToken();
+    var GIS_PRET = false;
+
+    function lireToken() {
+      try { return localStorage.getItem(CLE_TOKEN) || ''; } catch (e) { return ''; }
+    }
+
+    function ecrireToken(valeur) {
+      TOKEN = valeur;
+      try {
+        if (valeur) { localStorage.setItem(CLE_TOKEN, valeur); } else { localStorage.removeItem(CLE_TOKEN); }
+      } catch (e) { /* stockage indisponible : la session ne survivra pas au rechargement */ }
+    }
+
+    // GET si corps === null, sinon POST JSON. Appelle succes(json) ou echec(Error).
+    function appeler(chemin, corps, succes, echec) {
+      var options = {method: corps === null ? 'GET' : 'POST', headers: {}};
+      if (TOKEN) { options.headers['Authorization'] = 'Bearer ' + TOKEN; }
+      if (corps !== null) {
+        options.headers['Content-Type'] = 'application/json';
+        options.body = JSON.stringify(corps);
+      }
+      fetch(CONFIG.API_URL + chemin, options).then(function (reponse) {
+        return reponse.json().catch(function () { return {}; }).then(function (json) {
+          if (reponse.status === 401 && chemin !== '/auth/google') {
+            deconnecter('Session expirée, veuillez vous reconnecter.');
+            throw new Error('Session expirée');
+          }
+          if (!reponse.ok) {
+            throw new Error(typeof json.detail === 'string' ? json.detail : 'Erreur ' + reponse.status);
+          }
+          return json;
+        });
+      }, function () {
+        throw new Error('Serveur injoignable');
+      }).then(succes).catch(echec);
+    }
+
+    function parAuteur(auteur) {
+      return auteur ? ' par ' + String(auteur).split('@')[0] : '';
+    }
+
+    function afficherConnexion(message) {
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('connexion').style.display = 'block';
+      document.getElementById('message-connexion').textContent = message || '';
+      preparerBoutonGoogle();
+    }
+
+    function preparerBoutonGoogle() {
+      if (!GIS_PRET) { return; }
+      var conteneur = document.getElementById('bouton-google');
+      conteneur.innerHTML = '';
+      google.accounts.id.renderButton(conteneur, {theme: 'outline', size: 'large', text: 'signin_with', locale: 'fr'});
+    }
+
+    window.onGoogleLibraryLoad = function () {
+      google.accounts.id.initialize({client_id: CONFIG.GOOGLE_CLIENT_ID, callback: surIdentifiant});
+      GIS_PRET = true;
+      if (document.getElementById('connexion').style.display !== 'none') { preparerBoutonGoogle(); }
+    };
+
+    function surIdentifiant(reponse) {
+      document.getElementById('message-connexion').textContent = '';
+      appeler('/auth/google', {credential: reponse.credential}, function (resultat) {
+        ecrireToken(resultat.token);
+        charger();
+      }, function (erreur) {
+        document.getElementById('message-connexion').textContent = erreur.message;
+      });
+    }
+
+    function deconnecter(message) {
+      ecrireToken('');
+      DATA = null;
+      if (window.google && google.accounts) { google.accounts.id.disableAutoSelect(); }
+      afficherConnexion(message);
+    }
+
+    function charger() {
+      appeler('/api/data', null, function (donnees) {
+        DATA = donnees;
+        EXPANSION = new Set();
+        FILTRE = 'tous';
+        RECHERCHE = '';
+        document.getElementById('recherche').value = '';
+        document.getElementById('connexion').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('utilisateur').textContent = donnees.user;
+        document.getElementById('chips').innerHTML = '';
+        construireChips();
+        majCompteurs();
+        majChips();
+        rendre();
+      }, function (erreur) {
+        if (TOKEN) { afficherConnexion('Chargement impossible : ' + erreur.message); }
+      });
+    }
+
+    function normaliser(valeur) {
+      return String(valeur || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    }
+
+    function statutDe(cle) {
+      var entree = DATA.statuts[cle];
+      if (!entree || !entree.statut) { return ''; }
+      return DATA.statuses.indexOf(entree.statut) === -1 ? '' : entree.statut;
+    }
+
+    function classeStatut(cle) {
+      var index = DATA.statuses.indexOf(statutDe(cle));
+      return index === -1 ? '' : 'st-' + index;
+    }
+
+    function texteModif(cle) {
+      var entree = DATA.statuts[cle];
+      if (!entree || !entree.statut || !entree.modifie_le) { return ''; }
+      var date = new Date(entree.modifie_le);
+      if (isNaN(date.getTime())) { return ''; }
+      return 'Modifié le ' + date.toLocaleString('fr-CA') + parAuteur(entree.auteur);
+    }
+
+    function notesDe(cle) {
+      var entrees = DATA.notes[cle];
+      return (entrees && typeof entrees.length === 'number') ? entrees : [];
+    }
+
+    function texteNoteDe(note) {
+      if (!note || !note.note) { return ''; }
+      if (note.note_le) {
+        var date = new Date(note.note_le);
+        if (!isNaN(date.getTime())) { return 'Note du ' + date.toLocaleString('fr-CA') + parAuteur(note.auteur); }
+      }
+      return '';
+    }
+
+    function trierNotes(notes) {
+      notes.sort(function (a, b) {
+        var ta = Date.parse(a.note_le);
+        var tb = Date.parse(b.note_le);
+        if (isNaN(ta)) { ta = Number.MAX_SAFE_INTEGER; }
+        if (isNaN(tb)) { tb = Number.MAX_SAFE_INTEGER; }
+        return ta - tb;
+      });
+      return notes;
+    }
+
+    function medecinDe(cle) {
+      var entree = DATA.medecins[cle];
+      return entree && entree.medecin ? entree.medecin : '';
+    }
+
+    function texteMedecin(cle) {
+      var entree = DATA.medecins[cle];
+      if (!entree || !entree.medecin || !entree.modifie_le) { return ''; }
+      var date = new Date(entree.modifie_le);
+      if (isNaN(date.getTime())) { return ''; }
+      return 'Ajouté le ' + date.toLocaleString('fr-CA') + parAuteur(entree.auteur);
+    }
+
+    function medecinsGroupeDe(cle) {
+      var entree = DATA.medecins_groupe[cle];
+      if (!entree || !entree.medecins) { return []; }
+      var lignes = [];
+      var parts = String(entree.medecins).split(' | ');
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i].trim()) { lignes.push(parts[i].trim()); }
+      }
+      return lignes;
+    }
+
+    function texteMedecinsGroupe(cle) {
+      var entree = DATA.medecins_groupe[cle];
+      if (!entree || !entree.medecins || !entree.modifie_le) { return ''; }
+      var date = new Date(entree.modifie_le);
+      if (isNaN(date.getTime())) { return ''; }
+      return 'Modifié le ' + date.toLocaleString('fr-CA') + parAuteur(entree.auteur);
+    }
+
+    function comptes() {
+      var compte = {sans: 0};
+      for (var i = 0; i < DATA.statuses.length; i++) {
+        compte[DATA.statuses[i]] = 0;
+      }
+      for (var j = 0; j < DATA.entites.length; j++) {
+        var statut = statutDe(DATA.entites[j].cle);
+        if (statut) { compte[statut] = compte[statut] + 1; } else { compte.sans = compte.sans + 1; }
+      }
+      return compte;
+    }
+
+    function ajouterChip(valeur, libelle) {
+      var bouton = document.createElement('button');
+      bouton.type = 'button';
+      bouton.className = 'chip';
+      bouton.setAttribute('data-valeur', valeur);
+      bouton.appendChild(document.createTextNode(libelle));
+      var compteur = document.createElement('span');
+      compteur.className = 'compteur';
+      bouton.appendChild(compteur);
+      bouton.onclick = function () { basculerFiltre(valeur); };
+      document.getElementById('chips').appendChild(bouton);
+    }
+
+    function construireChips() {
+      ajouterChip('tous', 'Tous');
+      ajouterChip('sans', 'Sans statut');
+      for (var i = 0; i < DATA.statuses.length; i++) {
+        ajouterChip(DATA.statuses[i], DATA.statuses[i]);
+      }
+    }
+
+    function majCompteurs() {
+      var compte = comptes();
+      var chips = document.getElementById('chips').children;
+      for (var i = 0; i < chips.length; i++) {
+        var valeur = chips[i].getAttribute('data-valeur');
+        var nombre = 0;
+        if (valeur === 'tous') { nombre = DATA.entites.length; }
+        else if (valeur === 'sans') { nombre = compte.sans; }
+        else if (compte[valeur]) { nombre = compte[valeur]; }
+        chips[i].getElementsByClassName('compteur')[0].textContent = String(nombre);
+      }
+    }
+
+    function majChips() {
+      var chips = document.getElementById('chips').children;
+      for (var i = 0; i < chips.length; i++) {
+        var actif = chips[i].getAttribute('data-valeur') === FILTRE;
+        chips[i].className = actif ? 'chip actif' : 'chip';
+      }
+    }
+
+    function basculerFiltre(valeur) {
+      FILTRE = FILTRE === valeur ? 'tous' : valeur;
+      majChips();
+      rendre();
+    }
+
+    function garder(entite, requete) {
+      var statut = statutDe(entite.cle);
+      if (FILTRE === 'sans') {
+        if (statut) { return false; }
+      } else if (FILTRE !== 'tous' && statut !== FILTRE) {
+        return false;
+      }
+      if (!requete) { return true; }
+      if (normaliser(entite.nom).indexOf(requete) !== -1) { return true; }
+      if (normaliser(entite.cle).indexOf(requete) !== -1) { return true; }
+      if (normaliser(medecinDe(entite.cle)).indexOf(requete) !== -1) { return true; }
+      var membres = entite.membres || [];
+      for (var i = 0; i < membres.length; i++) {
+        if (normaliser(membres[i]).indexOf(requete) !== -1) { return true; }
+      }
+      return false;
+    }
+
+    function basculerDetails(cle, nomTexte, elementNom, conteneurDetails) {
+      if (EXPANSION.has(cle)) {
+        EXPANSION.delete(cle);
+        elementNom.textContent = '▸ ' + nomTexte;
+        conteneurDetails.style.display = 'none';
+      } else {
+        EXPANSION.add(cle);
+        elementNom.textContent = '▾ ' + nomTexte;
+        conteneurDetails.style.display = 'block';
+      }
+    }
+
+    function creerEditeurNote() {
+      var editeur = document.createElement('div');
+      editeur.className = 'note-editeur';
+      editeur.style.display = 'none';
+
+      var zone = document.createElement('textarea');
+      zone.setAttribute('rows', '3');
+      zone.setAttribute('maxlength', '2000');
+
+      var boutonEnregistrer = document.createElement('button');
+      boutonEnregistrer.type = 'button';
+      boutonEnregistrer.className = 'note-btn note-enregistrer';
+      boutonEnregistrer.textContent = 'Enregistrer';
+
+      var boutonAnnuler = document.createElement('button');
+      boutonAnnuler.type = 'button';
+      boutonAnnuler.className = 'note-btn note-annuler';
+      boutonAnnuler.textContent = 'Annuler';
+
+      var actions = document.createElement('div');
+      actions.className = 'note-actions';
+      actions.appendChild(boutonEnregistrer);
+      actions.appendChild(boutonAnnuler);
+
+      editeur.appendChild(zone);
+      editeur.appendChild(actions);
+      return editeur;
+    }
+
+    function creerNoteItem(cle, note) {
+      var item = document.createElement('div');
+      item.className = 'note-item';
+
+      var texteElement = document.createElement('div');
+      texteElement.className = 'note-texte';
+      texteElement.textContent = note.note;
+
+      var tagElement = document.createElement('div');
+      tagElement.className = 'modif';
+      tagElement.textContent = texteNoteDe(note);
+
+      var boutonModifier = document.createElement('button');
+      boutonModifier.type = 'button';
+      boutonModifier.className = 'note-btn';
+      boutonModifier.textContent = 'Modifier';
+
+      var boutonSupprimer = document.createElement('button');
+      boutonSupprimer.type = 'button';
+      boutonSupprimer.className = 'note-btn note-supprimer';
+      boutonSupprimer.textContent = '×';
+      boutonSupprimer.setAttribute('title', 'Supprimer la note');
+
+      var actions = document.createElement('div');
+      actions.className = 'note-item-actions';
+      actions.appendChild(boutonModifier);
+      actions.appendChild(boutonSupprimer);
+
+      var editeur = creerEditeurNote();
+      var zone = editeur.getElementsByTagName('textarea')[0];
+
+      var ouvrir = function () {
+        zone.value = note.note;
+        texteElement.style.display = 'none';
+        tagElement.style.display = 'none';
+        actions.style.display = 'none';
+        editeur.style.display = 'block';
+        zone.focus();
+      };
+
+      var fermer = function () {
+        editeur.style.display = 'none';
+        texteElement.style.display = '';
+        tagElement.style.display = '';
+        actions.style.display = '';
+      };
+
+      boutonModifier.onclick = ouvrir;
+      editeur.getElementsByClassName('note-annuler')[0].onclick = fermer;
+      editeur.getElementsByClassName('note-enregistrer')[0].onclick = function () {
+        var valeur = zone.value;
+        if (!valeur.trim()) {
+          // Vider le texte ne supprime pas la note ; la suppression passe par ×.
+          fermer();
+          return;
+        }
+        appeler('/api/note', {cle: cle, texte: valeur, id: note.id}, onNoteSaved(cle, note), onNoteError(cle));
+      };
+
+      boutonSupprimer.onclick = function () {
+        if (!confirm('Supprimer cette note ?')) {
+          return;
+        }
+        appeler('/api/note', {cle: cle, texte: '', id: note.id}, onNoteSaved(cle, note), onNoteError(cle));
+      };
+
+      item.appendChild(texteElement);
+      item.appendChild(tagElement);
+      item.appendChild(actions);
+      item.appendChild(editeur);
+      return item;
+    }
+
+    function creerNotes(cle) {
+      var conteneur = document.createElement('div');
+      conteneur.className = 'notes';
+
+      var notes = notesDe(cle);
+      for (var i = 0; i < notes.length; i++) {
+        conteneur.appendChild(creerNoteItem(cle, notes[i]));
+      }
+
+      var boutonAjouter = document.createElement('button');
+      boutonAjouter.type = 'button';
+      boutonAjouter.className = 'note-btn note-ajouter';
+      boutonAjouter.textContent = '+ Ajouter une note';
+
+      var editeur = creerEditeurNote();
+      var zone = editeur.getElementsByTagName('textarea')[0];
+
+      var fermer = function () {
+        editeur.style.display = 'none';
+        boutonAjouter.style.display = '';
+      };
+
+      boutonAjouter.onclick = function () {
+        zone.value = '';
+        boutonAjouter.style.display = 'none';
+        editeur.style.display = 'block';
+        zone.focus();
+      };
+
+      editeur.getElementsByClassName('note-annuler')[0].onclick = fermer;
+      editeur.getElementsByClassName('note-enregistrer')[0].onclick = function () {
+        var valeur = zone.value;
+        if (!valeur.trim()) {
+          // Une nouvelle note vide n'est jamais envoyée au serveur.
+          fermer();
+          return;
+        }
+        appeler('/api/note', {cle: cle, texte: valeur}, onNoteSaved(cle, null), onNoteError(cle));
+      };
+
+      conteneur.appendChild(boutonAjouter);
+      conteneur.appendChild(editeur);
+      return conteneur;
+    }
+
+    function creerMedecin(cle) {
+      var conteneur = document.createElement('div');
+      conteneur.className = 'medecin';
+
+      var titreElement = document.createElement('div');
+      titreElement.className = 'medecin-titre';
+      titreElement.textContent = 'Médecin responsable : ';
+      var valeurElement = document.createElement('span');
+      valeurElement.className = 'medecin-valeur';
+      valeurElement.textContent = medecinDe(cle) || '—';
+      titreElement.appendChild(valeurElement);
+
+      var tagElement = document.createElement('div');
+      tagElement.className = 'modif';
+      tagElement.textContent = texteMedecin(cle);
+
+      var bouton = document.createElement('button');
+      bouton.type = 'button';
+      bouton.className = 'note-btn';
+      bouton.textContent = medecinDe(cle) ? 'Modifier' : '+ Ajouter';
+
+      var editeur = document.createElement('div');
+      editeur.className = 'medecin-editeur';
+      editeur.style.display = 'none';
+
+      var zone = document.createElement('input');
+      zone.type = 'text';
+      zone.setAttribute('maxlength', '120');
+
+      var boutonEnregistrer = document.createElement('button');
+      boutonEnregistrer.type = 'button';
+      boutonEnregistrer.className = 'note-btn';
+      boutonEnregistrer.textContent = 'Enregistrer';
+
+      var boutonAnnuler = document.createElement('button');
+      boutonAnnuler.type = 'button';
+      boutonAnnuler.className = 'note-btn';
+      boutonAnnuler.textContent = 'Annuler';
+
+      var actions = document.createElement('div');
+      actions.className = 'note-actions';
+      actions.appendChild(boutonEnregistrer);
+      actions.appendChild(boutonAnnuler);
+
+      editeur.appendChild(zone);
+      editeur.appendChild(actions);
+
+      bouton.onclick = function () {
+        zone.value = medecinDe(cle);
+        titreElement.style.display = 'none';
+        tagElement.style.display = 'none';
+        bouton.style.display = 'none';
+        editeur.style.display = 'block';
+        zone.focus();
+      };
+
+      boutonAnnuler.onclick = function () {
+        editeur.style.display = 'none';
+        titreElement.style.display = '';
+        tagElement.style.display = '';
+        bouton.style.display = '';
+      };
+
+      boutonEnregistrer.onclick = function () {
+        appeler('/api/medecin', {cle: cle, nom: zone.value}, onMedecinSaved(cle), onMedecinError());
+      };
+
+      conteneur.appendChild(titreElement);
+      conteneur.appendChild(tagElement);
+      conteneur.appendChild(bouton);
+      conteneur.appendChild(editeur);
+      return conteneur;
+    }
+
+    function creerMedecinsGroupe(cle) {
+      var conteneur = document.createElement('div');
+      conteneur.className = 'medecins-groupe';
+
+      var titreElement = document.createElement('div');
+      titreElement.className = 'medecins-groupe-titre';
+      titreElement.textContent = 'Médecins du groupe :';
+
+      var medecins = medecinsGroupeDe(cle);
+      var valeurElement = document.createElement('div');
+      if (medecins.length === 0) {
+        valeurElement.className = 'medecin-valeur';
+        valeurElement.textContent = '—';
+      } else {
+        valeurElement.className = 'medecins-groupe-valeur';
+        for (var m = 0; m < medecins.length; m++) {
+          var ligneValeur = document.createElement('div');
+          ligneValeur.className = 'membre';
+          ligneValeur.textContent = medecins[m];
+          valeurElement.appendChild(ligneValeur);
+        }
+      }
+
+      var tagElement = document.createElement('div');
+      tagElement.className = 'modif';
+      tagElement.textContent = texteMedecinsGroupe(cle);
+
+      var bouton = document.createElement('button');
+      bouton.type = 'button';
+      bouton.className = 'note-btn';
+      bouton.textContent = medecins.length ? 'Modifier' : '+ Ajouter';
+
+      var editeur = document.createElement('div');
+      editeur.className = 'medecins-groupe-editeur';
+      editeur.style.display = 'none';
+
+      var zoneLignes = document.createElement('div');
+      var ajouterLigne = function (valeur, focus) {
+        var champ = document.createElement('input');
+        champ.type = 'text';
+        champ.setAttribute('maxlength', '120');
+        champ.value = valeur || '';
+        zoneLignes.appendChild(champ);
+        if (focus) { champ.focus(); }
+        return champ;
+      };
+
+      var boutonLigne = document.createElement('button');
+      boutonLigne.type = 'button';
+      boutonLigne.className = 'note-btn';
+      boutonLigne.textContent = '+ Ligne';
+      boutonLigne.onclick = function () {
+        ajouterLigne('', true);
+      };
+
+      var boutonEnregistrer = document.createElement('button');
+      boutonEnregistrer.type = 'button';
+      boutonEnregistrer.className = 'note-btn';
+      boutonEnregistrer.textContent = 'Enregistrer';
+
+      var boutonAnnuler = document.createElement('button');
+      boutonAnnuler.type = 'button';
+      boutonAnnuler.className = 'note-btn';
+      boutonAnnuler.textContent = 'Annuler';
+
+      var actions = document.createElement('div');
+      actions.className = 'note-actions';
+      actions.appendChild(boutonEnregistrer);
+      actions.appendChild(boutonAnnuler);
+
+      editeur.appendChild(zoneLignes);
+      editeur.appendChild(boutonLigne);
+      editeur.appendChild(actions);
+
+      bouton.onclick = function () {
+        zoneLignes.innerHTML = '';
+        var liste = medecinsGroupeDe(cle);
+        if (liste.length === 0) {
+          ajouterLigne('', false);
+        } else {
+          for (var i = 0; i < liste.length; i++) {
+            ajouterLigne(liste[i], false);
+          }
+        }
+        titreElement.style.display = 'none';
+        valeurElement.style.display = 'none';
+        tagElement.style.display = 'none';
+        bouton.style.display = 'none';
+        editeur.style.display = 'block';
+        zoneLignes.getElementsByTagName('input')[0].focus();
+      };
+
+      boutonAnnuler.onclick = function () {
+        editeur.style.display = 'none';
+        titreElement.style.display = '';
+        valeurElement.style.display = '';
+        tagElement.style.display = '';
+        bouton.style.display = '';
+      };
+
+      boutonEnregistrer.onclick = function () {
+        var valeurs = [];
+        var champs = zoneLignes.getElementsByTagName('input');
+        for (var i = 0; i < champs.length; i++) {
+          if (champs[i].value.trim()) { valeurs.push(champs[i].value.trim()); }
+        }
+        appeler('/api/medecins-groupe', {cle: cle, texte: valeurs.join(' | ')}, onMedecinsGroupeSaved(cle), onMedecinsGroupeError());
+      };
+
+      conteneur.appendChild(titreElement);
+      conteneur.appendChild(valeurElement);
+      conteneur.appendChild(tagElement);
+      conteneur.appendChild(bouton);
+      conteneur.appendChild(editeur);
+      return conteneur;
+    }
+
+    function creerLigne(entite) {
+      var classe = classeStatut(entite.cle);
+      var ligne = document.createElement('div');
+      ligne.className = classe ? 'ligne ' + classe : 'ligne';
+      ligne.setAttribute('data-cle', entite.cle);
+
+      var estGmf = entite.type === 'GMF';
+      var membres = entite.membres || [];
+      var ouvert = EXPANSION.has(entite.cle);
+
+      var principal = document.createElement('div');
+      principal.className = 'principal';
+
+      var nom = document.createElement('div');
+      nom.className = estGmf ? 'nom gmf' : 'nom';
+      nom.textContent = (ouvert ? '▾ ' : '▸ ') + entite.nom;
+      principal.appendChild(nom);
+
+      if (entite.region) {
+        var region = document.createElement('div');
+        region.className = 'region';
+        region.textContent = entite.region;
+        principal.appendChild(region);
+      }
+
+      var detail = document.createElement('div');
+      detail.className = 'detail';
+      if (estGmf) {
+        detail.textContent = '(' + membres.length + (membres.length === 1 ? ' établissement' : ' établissements') + ')'
+          + ' · GMF ' + entite.cle.replace('GMF:', '');
+      } else {
+        detail.textContent = entite.cle.replace('ETAB:', '');
+      }
+      principal.appendChild(detail);
+
+      var conteneurDetails = document.createElement('div');
+      conteneurDetails.className = 'details';
+      if (estGmf) {
+        var blocMembres = document.createElement('div');
+        blocMembres.className = 'membres';
+        for (var i = 0; i < membres.length; i++) {
+          var item = document.createElement('div');
+          item.className = 'membre';
+          item.textContent = membres[i];
+          blocMembres.appendChild(item);
+        }
+        conteneurDetails.appendChild(blocMembres);
+      }
+      conteneurDetails.appendChild(creerMedecin(entite.cle));
+      conteneurDetails.appendChild(creerMedecinsGroupe(entite.cle));
+      conteneurDetails.appendChild(creerNotes(entite.cle));
+      conteneurDetails.style.display = ouvert ? 'block' : 'none';
+      principal.appendChild(conteneurDetails);
+
+      ligne.onclick = function (evenement) {
+        if (evenement && evenement.target && evenement.target.closest
+          && evenement.target.closest('select, button, input, textarea')) {
+          return;
+        }
+        basculerDetails(entite.cle, entite.nom, nom, conteneurDetails);
+      };
+
+      var select = document.createElement('select');
+      var optionVide = document.createElement('option');
+      optionVide.value = '';
+      optionVide.textContent = '—';
+      select.appendChild(optionVide);
+      for (var s = 0; s < DATA.statuses.length; s++) {
+        var option = document.createElement('option');
+        option.value = DATA.statuses[s];
+        option.textContent = DATA.statuses[s];
+        select.appendChild(option);
+      }
+      select.value = statutDe(entite.cle);
+      select.onchange = function () { changerStatut(entite.cle, select.value); };
+
+      var modif = document.createElement('div');
+      modif.className = 'modif';
+      modif.textContent = texteModif(entite.cle);
+
+      var actions = document.createElement('div');
+      actions.className = 'actions';
+      actions.appendChild(select);
+      actions.appendChild(modif);
+
+      ligne.appendChild(principal);
+      ligne.appendChild(actions);
+      return ligne;
+    }
+
+    function trouverLigne(cle) {
+      var lignes = document.getElementById('liste').children;
+      for (var i = 0; i < lignes.length; i++) {
+        if (lignes[i].getAttribute('data-cle') === cle) { return lignes[i]; }
+      }
+      return null;
+    }
+
+    function appliquerStatut(cle, statut, modifieLe, auteur) {
+      if (statut) {
+        DATA.statuts[cle] = {statut: statut, modifie_le: modifieLe || '', auteur: auteur || ''};
+      } else {
+        delete DATA.statuts[cle];
+      }
+      var ligne = trouverLigne(cle);
+      if (!ligne) { return; }
+      var classe = classeStatut(cle);
+      ligne.className = classe ? 'ligne ' + classe : 'ligne';
+      var select = ligne.getElementsByTagName('select')[0];
+      if (select) { select.value = statut; }
+      var colonneActions = ligne.getElementsByClassName('actions')[0];
+      if (colonneActions) {
+        var modif = colonneActions.getElementsByClassName('modif')[0];
+        if (modif) { modif.textContent = texteModif(cle); }
+      }
+    }
+
+    function onSaved(cle) {
+      return function (resultat) {
+        appliquerStatut(cle, resultat.statut, resultat.modifie_le, resultat.auteur);
+        majCompteurs();
+      };
+    }
+
+    function onError(cle, entreePrecedente) {
+      return function (erreur) {
+        alert('Erreur : ' + erreur.message);
+        appliquerStatut(
+          cle,
+          entreePrecedente ? entreePrecedente.statut : '',
+          entreePrecedente ? entreePrecedente.modifie_le : '',
+          entreePrecedente ? entreePrecedente.auteur : ''
+        );
+      };
+    }
+
+    function onNoteSaved(cle, noteEditee) {
+      return function (resultat) {
+        var liste = DATA.notes[cle] || [];
+        var reste = [];
+        var remplace = false;
+        for (var i = 0; i < liste.length; i++) {
+          var meme = (liste[i] === noteEditee)
+            || (noteEditee && noteEditee.id !== '' && liste[i].id === noteEditee.id);
+          if (resultat.note === '') {
+            if (meme) { continue; }
+            reste.push(liste[i]);
+          } else if (meme && !remplace) {
+            reste.push({
+              id: resultat.id,
+              note: resultat.note,
+              note_le: resultat.note_le,
+              auteur: resultat.auteur
+            });
+            remplace = true;
+          } else {
+            reste.push(liste[i]);
+          }
+        }
+        if (resultat.note !== '' && !remplace) {
+          reste.push({
+            id: resultat.id,
+            note: resultat.note,
+            note_le: resultat.note_le,
+            auteur: resultat.auteur
+          });
+        }
+        trierNotes(reste);
+        if (reste.length === 0) {
+          delete DATA.notes[cle];
+        } else {
+          DATA.notes[cle] = reste;
+        }
+        remplacerNotes(cle);
+      };
+    }
+
+    function remplacerNotes(cle) {
+      var ligne = trouverLigne(cle);
+      if (!ligne) { return; }
+      var ancien = ligne.getElementsByClassName('notes')[0];
+      if (!ancien) { return; }
+      var nouveau = creerNotes(cle);
+      ancien.innerHTML = '';
+      while (nouveau.childNodes.length > 0) {
+        ancien.appendChild(nouveau.childNodes[0]);
+      }
+    }
+
+    function onNoteError(cle) {
+      return function (erreur) {
+        alert('Erreur : ' + erreur.message);
+      };
+    }
+
+    function onMedecinSaved(cle) {
+      return function (resultat) {
+        if (resultat.medecin === '') {
+          delete DATA.medecins[cle];
+        } else {
+          DATA.medecins[cle] = {medecin: resultat.medecin, modifie_le: resultat.modifie_le, auteur: resultat.auteur};
+        }
+        var ligne = trouverLigne(cle);
+        if (!ligne) { return; }
+        var ancien = ligne.getElementsByClassName('medecin')[0];
+        if (!ancien) { return; }
+        var nouveau = creerMedecin(cle);
+        ancien.innerHTML = '';
+        while (nouveau.childNodes.length > 0) {
+          ancien.appendChild(nouveau.childNodes[0]);
+        }
+      };
+    }
+
+    function onMedecinError() {
+      return function (erreur) {
+        alert('Erreur : ' + erreur.message);
+      };
+    }
+
+    function onMedecinsGroupeSaved(cle) {
+      return function (resultat) {
+        if (resultat.medecins === '') {
+          delete DATA.medecins_groupe[cle];
+        } else {
+          DATA.medecins_groupe[cle] = {medecins: resultat.medecins, modifie_le: resultat.modifie_le, auteur: resultat.auteur};
+        }
+        var ligne = trouverLigne(cle);
+        if (!ligne) { return; }
+        var ancien = ligne.getElementsByClassName('medecins-groupe')[0];
+        if (!ancien) { return; }
+        var nouveau = creerMedecinsGroupe(cle);
+        ancien.innerHTML = '';
+        while (nouveau.childNodes.length > 0) {
+          ancien.appendChild(nouveau.childNodes[0]);
+        }
+      };
+    }
+
+    function onMedecinsGroupeError() {
+      return function (erreur) {
+        alert('Erreur : ' + erreur.message);
+      };
+    }
+
+    function changerStatut(cle, valeur) {
+      var entreePrecedente = DATA.statuts[cle];
+      appliquerStatut(cle, valeur, '');
+      appeler('/api/statut', {cle: cle, statut: valeur}, onSaved(cle), onError(cle, entreePrecedente));
+    }
+
+    function rendre() {
+      var liste = document.getElementById('liste');
+      var requete = normaliser(RECHERCHE).trim();
+      var fragment = document.createDocumentFragment();
+      var vues = 0;
+      for (var i = 0; i < DATA.entites.length; i++) {
+        if (!garder(DATA.entites[i], requete)) { continue; }
+        fragment.appendChild(creerLigne(DATA.entites[i]));
+        vues++;
+      }
+      liste.innerHTML = '';
+      liste.appendChild(fragment);
+      document.getElementById('vide').style.display = vues === 0 ? 'block' : 'none';
+    }
+
+    document.getElementById('recherche').oninput = function () {
+      RECHERCHE = document.getElementById('recherche').value;
+      rendre();
+    };
+
+    document.getElementById('deconnexion').onclick = function () { deconnecter(''); };
+
+    if (TOKEN) { charger(); } else { afficherConnexion(''); }
+  </script>
+</body>
+</html>
