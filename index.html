@@ -167,8 +167,17 @@
       }).then(succes).catch(echec);
     }
 
+    // Nom Google connu au dernier login ; sinon « prenom.nom@… » devient « Prenom Nom ».
+    function nomAffiche(courriel) {
+      var connu = DATA && DATA.noms && DATA.noms[courriel];
+      if (connu) { return connu; }
+      return String(courriel).split('@')[0].split(/[._-]+/).map(function (mot) {
+        return mot.charAt(0).toUpperCase() + mot.slice(1);
+      }).join(' ');
+    }
+
     function parAuteur(auteur) {
-      return auteur ? ' par ' + String(auteur).split('@')[0] : '';
+      return auteur ? ' par ' + nomAffiche(auteur) : '';
     }
 
     function afficherConnexion(message) {
@@ -217,7 +226,7 @@
         document.getElementById('recherche').value = '';
         document.getElementById('connexion').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        document.getElementById('utilisateur').textContent = donnees.user;
+        document.getElementById('utilisateur').textContent = nomAffiche(donnees.user);
         document.getElementById('chips').innerHTML = '';
         construireChips();
         majCompteurs();
