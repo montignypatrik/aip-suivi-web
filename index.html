@@ -144,6 +144,44 @@
     .medecin-editeur input, .medecins-groupe-editeur input { margin-top: 6px; min-height: 36px; font-size: 13px; }
     .vide { display: none; margin: 0; padding: 45px 20px; text-align: center; color: #697286; }
 
+    /* admin */
+    .page-heading { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; }
+    .page-heading > div { flex: 1 1 auto; }
+    .admin-carte { margin-bottom: 22px; background: #fff; border: 1px solid var(--line); border-left: 4px solid #282e45; border-radius: 6px; }
+    .admin-onglets { display: flex; flex-wrap: wrap; gap: 3px; padding: 14px 20px 0; border-bottom: 1px solid #e5e7ef; }
+    .admin-onglet { padding: 7px 14px; margin-bottom: -1px; color: #596176; background: transparent; border: 1px solid transparent; border-radius: 5px 5px 0 0; font-size: 12px; font-weight: 600; }
+    .admin-onglet:hover { color: var(--ink); }
+    .admin-onglet.actif { color: var(--brand); background: #fff; border-color: #e5e7ef #e5e7ef #fff; }
+    .admin-corps { padding: 18px 20px 20px; }
+    .admin-grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px 16px; }
+    .admin-champ label { display: block; margin-bottom: 5px; color: #485166; font-size: 11px; font-weight: 650; }
+    .admin-champ input, .admin-champ select, .admin-champ textarea, .admin-editeur input, .admin-editeur textarea {
+      display: block; width: 100%; min-height: 36px; padding: 7px 12px; color: #0f172a; background: #fff;
+      border: 1px solid #e2e8f0; border-radius: 6px; outline: none; font-size: 13px; font-weight: 400;
+    }
+    .admin-champ textarea, .admin-editeur textarea { min-height: 90px; font-size: 12px; resize: vertical; }
+    .admin-champ input:focus, .admin-champ textarea:focus, .admin-editeur input:focus, .admin-editeur textarea:focus {
+      border-color: #2456dc99; box-shadow: 0 0 0 3px #2456dc1a;
+    }
+    .admin-champ.large { grid-column: 1 / -1; }
+    .aide { margin: 4px 0 0; color: #70798b; font-size: 11px; }
+    .admin-liste-item { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 10px 0; border-bottom: 1px solid #eef0f5; font-size: 13px; }
+    .admin-liste-item:last-child { border-bottom: 0; }
+    .admin-liste-item > div:first-child { flex: 1 1 260px; min-width: 0; }
+    .admin-liste-item .modif { margin-top: 1px; }
+    .admin-vide { margin: 0; color: #697286; font-size: 13px; }
+    .badge-admin { margin-left: 6px; padding: 1px 7px; color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 9px; font-size: 10px; font-weight: 650; vertical-align: 1px; }
+    .admin-entite { margin-top: 10px; padding: 10px 12px; background: #f6f7fb; border: 1px dashed #c7cddb; border-radius: 5px; font-size: 12px; }
+    .admin-entite-titre { color: #485166; font-size: 11px; font-weight: 650; }
+    .admin-entite .note-btn { margin-top: 6px; }
+    .admin-editeur .admin-champ { margin-top: 8px; }
+    .admin-ajout-courriel { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-top: 14px; padding-top: 14px; border-top: 1px solid #eef0f5; }
+    .admin-ajout-courriel .admin-champ { flex: 1 1 240px; }
+    .admin-ajout-courriel .note-btn, .admin-actions .note-btn { margin: 0; }
+    .admin-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .note-btn.primaire { color: #fff; background: var(--brand); border-color: var(--brand); }
+    .note-btn.primaire:hover { background: #1d4ed8; border-color: #1d4ed8; }
+
     @media (max-width: 900px) { .shell-width { width: calc(100% - 40px); } .brand-row { height: 64px; } }
     @media (max-width: 600px) {
       .shell-width { width: calc(100% - 32px); }
@@ -180,9 +218,20 @@
       <div class="shell-width breadcrumb"><span>Espace de gestion</span><span>›</span><b>Suivi AIP</b></div>
       <main class="shell-width page-content">
         <div class="page-heading">
-          <h1>Suivi AIP</h1>
-          <p>Collecte des numéros AIP par GMF et établissement</p>
+          <div>
+            <h1>Suivi AIP</h1>
+            <p>Collecte des numéros AIP par GMF et établissement</p>
+          </div>
+          <button id="bouton-admin" type="button" class="note-btn" style="display:none" aria-expanded="false" aria-controls="admin">Administration</button>
         </div>
+        <section id="admin" class="admin-carte" style="display:none" aria-label="Administration">
+          <div class="admin-onglets" role="tablist">
+            <button type="button" class="admin-onglet" data-onglet="ajouter" role="tab">Ajouter</button>
+            <button type="button" class="admin-onglet" data-onglet="archives" role="tab">Archivés</button>
+            <button type="button" class="admin-onglet" data-onglet="utilisateurs" role="tab">Utilisateurs</button>
+          </div>
+          <div id="admin-corps" class="admin-corps"></div>
+        </section>
         <div class="filter-bar">
           <div class="champ"><label class="filter-label" for="recherche">Recherche</label><input id="recherche" type="search" placeholder="Nom, numéro, médecin…" autocomplete="off"></div>
           <div class="champ chips-champ"><span class="filter-label">Statut</span><div id="chips" class="chips"></div></div>
@@ -311,6 +360,8 @@
         document.getElementById('session').style.display = 'flex';
         document.getElementById('utilisateur').textContent = nomAffiche(donnees.user);
         document.getElementById('chips').innerHTML = '';
+        document.getElementById('bouton-admin').style.display = donnees.admin ? '' : 'none';
+        fermerAdmin();
         construireChips();
         majCompteurs();
         majChips();
@@ -879,6 +930,7 @@
       conteneurDetails.appendChild(creerMedecin(entite.cle));
       conteneurDetails.appendChild(creerMedecinsGroupe(entite.cle));
       conteneurDetails.appendChild(creerNotes(entite.cle));
+      if (DATA.admin) { conteneurDetails.appendChild(creerAdminEntite(entite)); }
       conteneurDetails.style.display = ouvert ? 'block' : 'none';
       principal.appendChild(conteneurDetails);
 
@@ -1098,6 +1150,282 @@
       RECHERCHE = document.getElementById('recherche').value;
       rendre();
     };
+
+    // ---------- Administration (visible seulement si DATA.admin) ----------
+
+    function el(tag, classe, texte) {
+      var element = document.createElement(tag);
+      if (classe) { element.className = classe; }
+      if (texte !== undefined) { element.textContent = texte; }
+      return element;
+    }
+
+    function bouton(texte, classe, action) {
+      var b = el('button', classe ? 'note-btn ' + classe : 'note-btn', texte);
+      b.type = 'button';
+      b.onclick = action;
+      return b;
+    }
+
+    function champ(libelle, element, large) {
+      var conteneur = el('div', large ? 'admin-champ large' : 'admin-champ');
+      var id = 'admin-' + Math.random().toString(36).slice(2);
+      var etiquette = el('label', '', libelle);
+      etiquette.htmlFor = id;
+      element.id = id;
+      conteneur.appendChild(etiquette);
+      conteneur.appendChild(element);
+      return conteneur;
+    }
+
+    function entree(valeur, max) {
+      var input = el('input');
+      input.type = 'text';
+      input.value = valeur || '';
+      if (max) { input.setAttribute('maxlength', String(max)); }
+      return input;
+    }
+
+    function lignesDe(textarea) {
+      return textarea.value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+    }
+
+    function dateCourte(iso) {
+      var date = new Date(iso);
+      return isNaN(date.getTime()) ? '' : date.toLocaleString('fr-CA');
+    }
+
+    // Même ordre que le serveur : GMF d'abord, puis nom sans accents ni casse.
+    function cleTri(entite) {
+      return (entite.type === 'GMF' ? '0' : '1') + normaliser(entite.nom) + '\u0000' + entite.cle;
+    }
+
+    function insererEntite(entite) {
+      DATA.entites = DATA.entites.filter(function (e) { return e.cle !== entite.cle; });
+      DATA.entites.push(entite);
+      DATA.entites.sort(function (a, b) {
+        var ka = cleTri(a), kb = cleTri(b);
+        return ka < kb ? -1 : ka > kb ? 1 : 0;
+      });
+      majCompteurs();
+      rendre();
+    }
+
+    function retirerEntite(cle) {
+      DATA.entites = DATA.entites.filter(function (e) { return e.cle !== cle; });
+      EXPANSION.delete(cle);
+      majCompteurs();
+      rendre();
+    }
+
+    function erreurAlerte(erreur) { alert('Erreur : ' + erreur.message); }
+
+    function creerAdminEntite(entite) {
+      var estGmf = entite.type === 'GMF';
+      var conteneur = el('div', 'admin-entite');
+      var vue = el('div');
+      vue.appendChild(el('div', 'admin-entite-titre', 'Administration'));
+      var editeur = el('div', 'admin-editeur');
+      editeur.style.display = 'none';
+
+      var nom = entree(entite.nom, 200);
+      var region = entree(entite.region, 120);
+      var membres = el('textarea');
+      editeur.appendChild(champ('Nom', nom));
+      editeur.appendChild(champ('Région', region));
+      if (estGmf) {
+        editeur.appendChild(champ('Établissements membres (un par ligne)', membres));
+      }
+      var actions = el('div', 'note-actions');
+      actions.appendChild(bouton('Enregistrer', '', function () {
+        appeler('/api/admin/entite/modifier', {
+          cle: entite.cle, nom: nom.value, region: region.value, membres: estGmf ? lignesDe(membres) : []
+        }, insererEntite, erreurAlerte);
+      }));
+      actions.appendChild(bouton('Annuler', '', function () {
+        editeur.style.display = 'none';
+        vue.style.display = '';
+      }));
+      editeur.appendChild(actions);
+
+      vue.appendChild(bouton('Modifier', '', function () {
+        nom.value = entite.nom;
+        region.value = entite.region;
+        membres.value = (entite.membres || []).join('\n');
+        vue.style.display = 'none';
+        editeur.style.display = 'block';
+        nom.focus();
+      }));
+      vue.appendChild(bouton('Archiver', 'note-supprimer', function () {
+        if (!confirm('Archiver « ' + entite.nom + ' » ? Il disparaîtra de la liste ; l\'historique est conservé et il pourra être restauré.')) { return; }
+        appeler('/api/admin/entite/archiver', {cle: entite.cle}, function () { retirerEntite(entite.cle); }, erreurAlerte);
+      }));
+
+      conteneur.appendChild(vue);
+      conteneur.appendChild(editeur);
+      return conteneur;
+    }
+
+    var ONGLET_ADMIN = 'ajouter';
+
+    function ouvrirAdmin(onglet) {
+      ONGLET_ADMIN = onglet;
+      document.getElementById('admin').style.display = 'block';
+      document.getElementById('bouton-admin').setAttribute('aria-expanded', 'true');
+      var onglets = document.getElementsByClassName('admin-onglet');
+      for (var i = 0; i < onglets.length; i++) {
+        var actif = onglets[i].getAttribute('data-onglet') === onglet;
+        onglets[i].className = actif ? 'admin-onglet actif' : 'admin-onglet';
+        onglets[i].setAttribute('aria-selected', actif ? 'true' : 'false');
+      }
+      var corps = document.getElementById('admin-corps');
+      corps.innerHTML = '';
+      if (onglet === 'ajouter') { construireAjout(corps); }
+      if (onglet === 'archives') { construireArchives(corps); }
+      if (onglet === 'utilisateurs') { construireUtilisateurs(corps); }
+    }
+
+    function fermerAdmin() {
+      document.getElementById('admin').style.display = 'none';
+      document.getElementById('bouton-admin').setAttribute('aria-expanded', 'false');
+      document.getElementById('admin-corps').innerHTML = '';
+    }
+
+    function construireAjout(corps) {
+      var type = el('select');
+      [['GMF', 'GMF'], ['ETAB', 'Établissement']].forEach(function (paire) {
+        var option = el('option', '', paire[1]);
+        option.value = paire[0];
+        type.appendChild(option);
+      });
+      var numero = entree('', 10);
+      numero.setAttribute('inputmode', 'numeric');
+      var nom = entree('', 200);
+      var region = entree('', 120);
+      var membres = el('textarea');
+      membres.placeholder = '54236 – Clinique Exemple';
+
+      var grille = el('div', 'admin-grille');
+      grille.appendChild(champ('Type', type));
+      var champNumero = champ('Numéro GMF', numero);
+      grille.appendChild(champNumero);
+      grille.appendChild(champ('Nom', nom));
+      grille.appendChild(champ('Région', region));
+      var champMembres = champ('Établissements membres (un par ligne)', membres, true);
+      champMembres.appendChild(el('p', 'aide', 'Format habituel : « numéro – nom ». Les lignes vides sont ignorées.'));
+      grille.appendChild(champMembres);
+      type.onchange = function () {
+        var gmf = type.value === 'GMF';
+        champMembres.style.display = gmf ? '' : 'none';
+        champNumero.getElementsByTagName('label')[0].textContent = gmf ? 'Numéro GMF' : 'Numéro RAMQ de l\'établissement';
+      };
+
+      var actions = el('div', 'admin-actions');
+      actions.appendChild(bouton('Ajouter', 'primaire', function () {
+        appeler('/api/admin/entite', {
+          type: type.value, numero: numero.value, nom: nom.value, region: region.value,
+          membres: type.value === 'GMF' ? lignesDe(membres) : []
+        }, function (entite) {
+          numero.value = ''; nom.value = ''; region.value = ''; membres.value = '';
+          EXPANSION.add(entite.cle);
+          insererEntite(entite);
+          alert('« ' + entite.nom + ' » a été ajouté.');
+        }, erreurAlerte);
+      }));
+      corps.appendChild(grille);
+      corps.appendChild(actions);
+      type.focus();
+    }
+
+    function construireArchives(corps) {
+      corps.appendChild(el('p', 'admin-vide', 'Chargement…'));
+      appeler('/api/admin/archives', null, function (archives) {
+        corps.innerHTML = '';
+        if (archives.length === 0) {
+          corps.appendChild(el('p', 'admin-vide', 'Aucune entité archivée.'));
+          return;
+        }
+        archives.forEach(function (a) {
+          var item = el('div', 'admin-liste-item');
+          var texte = el('div');
+          texte.appendChild(el('div', a.type === 'GMF' ? 'nom gmf' : 'nom', a.nom));
+          texte.appendChild(el('div', 'detail', a.cle.replace(':', ' ') + (a.region ? ' · ' + a.region : '')));
+          texte.appendChild(el('div', 'modif', 'Archivé le ' + dateCourte(a.archive_le) + parAuteur(a.archive_par)));
+          item.appendChild(texte);
+          item.appendChild(bouton('Restaurer', '', function () {
+            appeler('/api/admin/entite/restaurer', {cle: a.cle}, function (entite) {
+              insererEntite(entite);
+              item.remove();
+              if (!corps.children.length) { corps.appendChild(el('p', 'admin-vide', 'Aucune entité archivée.')); }
+            }, erreurAlerte);
+          }));
+          corps.appendChild(item);
+        });
+      }, function (erreur) {
+        corps.innerHTML = '';
+        corps.appendChild(el('p', 'admin-vide', 'Erreur : ' + erreur.message));
+      });
+    }
+
+    function construireUtilisateurs(corps) {
+      corps.appendChild(el('p', 'admin-vide', 'Chargement…'));
+      appeler('/api/admin/utilisateurs', null, function (utilisateurs) {
+        corps.innerHTML = '';
+        var nbAdmins = utilisateurs.filter(function (u) { return u.admin; }).length;
+        var liste = el('div');
+        utilisateurs.forEach(function (u) {
+          var item = el('div', 'admin-liste-item');
+          var texte = el('div');
+          var nom = el('div', 'nom', u.nom || nomAffiche(u.email));
+          nom.style.cursor = 'default';
+          if (u.admin) { nom.appendChild(el('span', 'badge-admin', 'Admin')); }
+          texte.appendChild(nom);
+          texte.appendChild(el('div', 'detail', u.email + (u.nom ? '' : ' · jamais connecté')));
+          item.appendChild(texte);
+          var action = bouton(u.admin ? 'Retirer admin' : 'Rendre admin', u.admin ? 'note-supprimer' : '', function () {
+            if (u.admin && u.email === DATA.user
+              && !confirm('Retirer vos propres droits d\'administration ?')) { return; }
+            appeler('/api/admin/utilisateur', {email: u.email, admin: !u.admin}, function () {
+              if (u.email === DATA.user && u.admin) { charger(); return; }
+              ouvrirAdmin('utilisateurs');
+            }, erreurAlerte);
+          });
+          if (u.admin && nbAdmins <= 1) {
+            action.disabled = true;
+            action.title = 'Dernier administrateur';
+          }
+          item.appendChild(action);
+          liste.appendChild(item);
+        });
+        corps.appendChild(liste);
+
+        var ajout = el('div', 'admin-ajout-courriel');
+        var courriel = entree('', 120);
+        courriel.type = 'email';
+        courriel.placeholder = 'prenom.nom@facturation.net';
+        ajout.appendChild(champ('Ajouter un administrateur par courriel', courriel));
+        ajout.appendChild(bouton('Ajouter', 'primaire', function () {
+          appeler('/api/admin/utilisateur', {email: courriel.value, admin: true}, function () {
+            ouvrirAdmin('utilisateurs');
+          }, erreurAlerte);
+        }));
+        corps.appendChild(ajout);
+      }, function (erreur) {
+        corps.innerHTML = '';
+        corps.appendChild(el('p', 'admin-vide', 'Erreur : ' + erreur.message));
+      });
+    }
+
+    document.getElementById('bouton-admin').onclick = function () {
+      if (document.getElementById('admin').style.display === 'block') { fermerAdmin(); } else { ouvrirAdmin(ONGLET_ADMIN); }
+    };
+
+    (function () {
+      var onglets = document.getElementsByClassName('admin-onglet');
+      for (var i = 0; i < onglets.length; i++) {
+        onglets[i].onclick = function () { ouvrirAdmin(this.getAttribute('data-onglet')); };
+      }
+    })();
 
     document.getElementById('deconnexion').onclick = function () { deconnecter('', true); };
 
